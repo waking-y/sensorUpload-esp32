@@ -4,14 +4,13 @@ set(requires driver)
 
 # 引入所有源文件
 idf_component_register(
-    SRCS "LED/led.c" "DHT11/dht11.c" "WebConfig/webconfig.c"
+    SRCS "LED/led.c" "DHT11/dht11.c" "WebConfig/webconfig.c" "MQ2/mq2.c"
     
-    INCLUDE_DIRS "LED" "DHT11" "WebConfig"
+    INCLUDE_DIRS "LED" "DHT11" "WebConfig" "MQ2"
     
-    # 网页文件直接嵌进 Flash 内存里
     EMBED_TXTFILES "WebConfig/apcfg.html"
 
-    REQUIRES driver esp_http_server json esp_wifi nvs_flash
+    REQUIRES driver esp_http_server json esp_wifi nvs_flash esp_adc
 )
 
 

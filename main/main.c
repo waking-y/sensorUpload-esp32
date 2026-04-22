@@ -2,6 +2,7 @@
 #include "esp_log.h"
 #include "led.h"
 #include "dht11.h"
+#include "mq2.h"
 #include "webconfig.h"
 #include "app_network.h"
 #include "app_sensor.h"
@@ -20,6 +21,7 @@ void app_main(void) {
     // 2. 初始化底层硬件 (BSP)
     led_init();
     dht11_init();
+    mq2_init();
 
     // 3. 启动网页配网环境
     webconfig_init_ap_and_server();
