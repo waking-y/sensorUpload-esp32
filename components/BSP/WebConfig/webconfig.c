@@ -48,6 +48,7 @@ static esp_err_t ws_handler(httpd_req_t *req) {
         httpd_ws_send_frame(req, &res_pkt);
     }
     
+    // ---------------- 处理【提交配网】请求 ----------------
     if (cJSON_HasObjectItem(root, "ssid")) {
         char *ssid = cJSON_GetObjectItem(root, "ssid")->valuestring;
         char *pass = cJSON_GetObjectItem(root, "password")->valuestring;
@@ -58,8 +59,15 @@ static esp_err_t ws_handler(httpd_req_t *req) {
         wifi_config_t wifi_cfg = {0};
         strncpy((char *)wifi_cfg.sta.ssid, ssid, sizeof(wifi_cfg.sta.ssid) - 1);
         strncpy((char *)wifi_cfg.sta.password, pass, sizeof(wifi_cfg.sta.password) - 1);
+        
+        // DTIM 优化，延长监听间隔至 10 个信标周期 (约1秒)
+        wifi_cfg.sta.listen_interval = 10; 
+        
         ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_cfg));
         esp_wifi_connect();
+        
+        // 强制开启 Wi-Fi Modem-sleep 模式
+        esp_wifi_set_ps(WIFI_PS_MIN_MODEM); 
 
         char *conn_reply = "{\"event\":\"wifi_status\",\"status\":\"connected\"}";
         httpd_ws_frame_t res_pkt = {
