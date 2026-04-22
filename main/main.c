@@ -1,7 +1,9 @@
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "nvs_flash.h"
 #include "esp_log.h"
 #include "esp_pm.h"     
-
+#include "oled.h"
 #include "led.h"
 #include "dht11.h"
 #include "mq2.h"       
@@ -20,7 +22,6 @@ void app_main(void) {
         .light_sleep_enable = true // 允许进入轻度休眠
     };
     ESP_ERROR_CHECK(esp_pm_configure(&pm_config));
-    ESP_LOGI(TAG, "自动轻度休眠与动态调频已开启！");
 #endif
     // =================================================
 
@@ -37,14 +38,23 @@ void app_main(void) {
     dht11_init();
     mq2_init();  
 
+    OLED_Init();
+    OLED_Clear();
+    OLED_ShowString(0, 0, "Please enter in the browser:", 8);
+    OLED_ShowString(0, 2, "http://", 8);
+    OLED_ShowString(0, 4, "192.168.4.1", 16);
+    vTaskDelay(pdMS_TO_TICKS(5000));
+
     // 3. 启动网页配网环境
     webconfig_init_ap_and_server();
-
+    
+    OLED_ShowString(0, 2, "AP: ESP32_Config", 8);
+    OLED_ShowString(0, 4, "Wait Web Config.", 8);
     // 4. 初始化应用层模块
     app_network_init();       
     app_sensor_start_task();  
     
-    ESP_LOGI(TAG, "=============================================");
-    ESP_LOGI(TAG, "system initialized, waiting for network connection...");
-    ESP_LOGI(TAG, "=============================================");
+    // ESP_LOGI(TAG, "=============================================");
+    // ESP_LOGI(TAG, "system initialized, waiting for network connection...");
+    // ESP_LOGI(TAG, "=============================================");
 }

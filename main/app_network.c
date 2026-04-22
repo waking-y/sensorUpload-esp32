@@ -5,6 +5,7 @@
 #include "mqtt_client.h"
 #include "webconfig.h"
 #include "app_network.h"
+#include "oled.h"
 
 static const char *TAG = "APP_NET";
 
@@ -37,8 +38,11 @@ void app_network_mqtt_publish(const char *payload) {
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data) {
     switch ((esp_mqtt_event_id_t)event_id) {
         case MQTT_EVENT_CONNECTED:
-            ESP_LOGI(TAG, "MQTT connected successfully!");
+            //ESP_LOGI(TAG, "MQTT connected successfully!");
             is_mqtt_connected = true;
+            OLED_Clear();
+            OLED_ShowString(0, 0, "MQTT Connected!", 8);
+            OLED_ShowString(0, 2, "Start Reading...", 8);
             break;
         case MQTT_EVENT_DISCONNECTED:
             ESP_LOGW(TAG, "MQTT disconnected!");
@@ -57,8 +61,11 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t e
     } 
     else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
-        ESP_LOGI(TAG, "🎉 Successfully obtained local IP: " IPSTR, IP2STR(&event->ip_info.ip));
-        
+        //ESP_LOGI(TAG, "Successfully obtained local IP: " IPSTR, IP2STR(&event->ip_info.ip));
+        OLED_Clear();
+        OLED_ShowString(0, 0, "WiFi Connected!", 8);
+        OLED_ShowString(0, 2, "Connecting MQTT.", 8);
+
         // 清理配网服务
         webconfig_stop();
         esp_wifi_set_mode(WIFI_MODE_STA);

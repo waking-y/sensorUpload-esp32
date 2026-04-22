@@ -7,14 +7,16 @@
 #include "mq2.h"        
 #include "app_network.h"
 #include "app_sensor.h"
+#include "oled.h"
 
 static const char *TAG = "APP_SENSOR";
 
 static void sensor_upload_task(void *pvParameters) {
     uint8_t temperature = 0;
     uint8_t humidity = 0;
-    float gas_ppm = 0.0f;       // 改为浮点型 PPM
+    float gas_ppm = 0.0f;    
     char payload[128]; 
+    char display_buf[32];
 
     while (1) {
         bool dht11_success = false;
@@ -23,16 +25,25 @@ static void sensor_upload_task(void *pvParameters) {
             vTaskDelay(pdMS_TO_TICKS(100)); 
         }
 
-        // 调用新的 PPM 读取函数
         mq2_read_ppm(&gas_ppm);
 
         if (dht11_success) {
             // 打印时带上 1 位小数
             ESP_LOGI(TAG, "local- Temp: %d C, Humi: %d %%, Gas: %.1f ppm", temperature, humidity, gas_ppm);
-            
+            //OLED_Clear();
+
             gpio_set_level(LED_GPIO_PIN, 0); 
             vTaskDelay(pdMS_TO_TICKS(100));  
             gpio_set_level(LED_GPIO_PIN, 1); 
+
+            sprintf(display_buf, "Temp: %2d C    ", temperature);
+            OLED_ShowString(0, 0, display_buf, 16);
+            
+            sprintf(display_buf, "Humi: %2d %%    ", humidity);
+            OLED_ShowString(0, 2, display_buf, 16);
+
+            sprintf(display_buf, "Gas : %.1f ppm  ", gas_ppm);
+            OLED_ShowString(0, 4, display_buf, 16);
 
             if (app_network_is_mqtt_ready()) {
                 // 打包 JSON：上传 ppm 值
